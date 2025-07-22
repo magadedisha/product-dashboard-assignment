@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/grid.css" />
+  <title>Product Dashboard</title>
+</head>
+<body>
+
+  <header>
+    <div class="logo">
+      Welcome <span id="userName">User</span> to Product Dashboard
+    </div>
+    <div class="user-section">
+      <button class="download-btn" onclick="generatePDF()">📄 Download Report</button>
+      <button class="logout-btn" onclick="logout()">Logout</button>
+    </div>
+  </header>
+
+  <h2>Manage Your Monthly Products</h2>
+  <form id="productForm" class="dashboard-form" onsubmit="addProduct(event)">
+    <input id="customer" class="dashboard-input" placeholder="Customer Name" required>
+    <input id="name" class="dashboard-input" placeholder="Product Name" required>
+    <input id="price" class="dashboard-input" type="number" placeholder="Price" required min="0">
+    <input id="sold" class="dashboard-input" type="number" placeholder="Total Sold" required min = "0">
+    <button class="dashboard-btn" type="submit">Add Product</button>
+  </form>
+
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Customer</th>
+        <th>Product</th>
+        <th>Price</th>
+        <th>Total Sold</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="productTableBody"></tbody>
+  </table>
+
+  <!-- jsPDF FIRST -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <!-- THEN autoTable plugin -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+
+  <script>
+    let products = JSON.parse(localStorage.getItem("products")) || [];
+    let editIndex = -1;
+
+    function displayProducts() {
+      const tableBody = document.getElementById("productTableBody");
+      tableBody.innerHTML = "";
+
+      products.forEach((product, index) => {
+        const row = `
+          <tr>
+            <td>${index + 1}</td>
+            <td>${product.customer}</td>
+            <td>${product.name}</td>
+            <td>${product.price}</td>
+            <td>${product.sold}</td>
+            <td>
+              <button class="delete-btn" onclick="deleteProduct(${index})">Delete</button>
+              <button class="edit-btn" onclick="editProduct(${index})">Edit</button>
+            </td>
+          </tr>
+        `;
+        tableBody.innerHTML += row;
+      });
+    }
+
+    function addProduct(event) {
+      event.preventDefault();
+      const customer = document.getElementById("customer").value;
+      const name = document.getElementById("name").value;
+      const price = document.getElementById("price").value;
+      const sold = document.getElementById("sold").value;
+      const productData = { customer, name, price, sold };
+
+      if (editIndex === -1) {
+        products.push(productData);
+      } else {
+        products[editIndex] = productData;
+        editIndex = -1;
+        document.querySelector("form button").textContent = "Add Product";
+      }
+
+      localStorage.setItem("products", JSON.stringify(products));
+      displayProducts();
+      document.getElementById("productForm").reset();
+    }
+
+    function deleteProduct(index) {
+      products.splice(index, 1);
+      localStorage.setItem("products", JSON.stringify(products));
+      displayProducts();
+    }
+
+    function editProduct(index) {
+      const product = products[index];
+      document.getElementById("customer").value = product.customer;
+      document.getElementById("name").value = product.name;
+      document.getElementById("price").value = product.price;
+      document.getElementById("sold").value = product.sold;
+      editIndex = index;
+      document.querySelector("form button").textContent = "Update Product";
+    }
+
+    function logout() {
+      localStorage.removeItem("loggedInUser");
+      window.location.href = "index.html";
+    }
+
+    function loadUser() {
+      const user = localStorage.getItem("loggedInUser") || "User";
+      document.getElementById("userName").textContent = user;
+    }
+
+    async function generatePDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+
+      doc.setFontSize(16);
+      doc.text("Monthly Product Report", 14, 20);
+
+      const tableData = products.map((p, i) => [
+        i + 1,
+        p.customer,
+        p.name,
+        p.price,
+        p.sold
+      ]);
+
+      doc.autoTable({
+        head: [["ID", "Customer", "Product", "Price", "Total Sold"]],
+        body: tableData,
+        startY: 30,
+        styles: {
+          halign: 'center',
+          fontSize: 11,
+          cellPadding: 3
+        },
+        headStyles: {
+          fillColor: [240, 240, 240],
+          textColor: 20,
+          fontStyle: 'bold'
+        }
+      });
+
+      doc.save("product-report.pdf");
+    }
+
+    window.onload = () => {
+      loadUser();
+      displayProducts();
+    };
+  </script>
+</body>
+</html>
