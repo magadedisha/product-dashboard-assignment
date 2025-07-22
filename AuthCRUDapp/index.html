@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login | Gridify</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="container">
+    <div class="welcome">
+      <h1>Welcome to Gridify</h1>
+      <p class="tagline">Your lightweight product dashboard</p>
+    </div>
+    <br><br>
+    <form id="loginForm">
+      <div class="form-group">
+        <label for="loginEmail">Email</label>
+        <input type="email" id="loginEmail" required />
+      </div>
+      <div class="form-group">
+        <label for="loginPassword">Password</label>
+        <input type="password" id="loginPassword" required />
+      </div>
+      <div class="form-button">
+        <button type="submit">Login</button>
+      </div><br>
+      <div class="form-link">
+        <p>New user? &nbsp; <a href="signup.html">Register here</a></p>
+      </div>
+    </form>
+  </div>
+
+  <script>
+    document.getElementById("loginForm").addEventListener("submit", function (e) {
+      e.preventDefault();
+      const email = document.getElementById("loginEmail").value;
+      const password = document.getElementById("loginPassword").value;
+
+      const user = JSON.parse(localStorage.getItem("user"));
+
+      if (!user) {
+        alert("No user found. Please register first.");
+        return;
+      }
+
+      if (user.email === email && user.password === password) {
+        alert("Login successful!");
+        window.location.href = "dashboard.html";
+      } else {
+        alert("Invalid email or password.");
+      }
+    });
+  </script>
+</body>
+</html>
+
